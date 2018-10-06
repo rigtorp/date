@@ -62,7 +62,7 @@ main()
    // utc leap second
    {
      auto lu = local_days{2015_y/July/1_d} - milliseconds(1);
-     auto ut = clock_cast<utc_clock>(lu) + milliseconds(50); //into leap second
+     auto ut = clock_cast<utc_clock>(lu) + milliseconds(1000); //into leap second
 
      assert(clock_cast<local_t>(ut) == lu);
    }
@@ -72,7 +72,7 @@ main()
      auto lu = local_days{2000_y/January/1_d};
      auto ut = clock_cast<utc_clock>(lu);
      assert(clock_cast<local_t>(ut) == lu);
-     assert(ut.time_since_epoch() == seconds(946684822));
+     assert(ut.time_since_epoch() == seconds(946684824));
    }
 
    /// tai epoch
