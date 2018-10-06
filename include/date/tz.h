@@ -1888,9 +1888,11 @@ utc_clock::from_sys(const sys_time<Duration>& st)
 {
     using namespace std::chrono;
     using CD = typename std::common_type<Duration, seconds>::type;
+    auto const pre_leap = detail::pre_leap<CD>(sys_time<CD>(st.time_since_epoch()))
+      - detail::pre_leap<CD>(sys_time<CD>(sys_days(year{ 1970 } / January / 1)));
     auto const& leaps = get_tzdb().leaps;
     auto const lt = std::upper_bound(leaps.begin(), leaps.end(), st);
-    return utc_time<CD>{st.time_since_epoch() + seconds{lt-leaps.begin()}};
+    return utc_time<CD>{st.time_since_epoch() + pre_leap + seconds{lt-leaps.begin()} };
 }
 
 // Return pair<is_leap_second, seconds{number_of_leap_seconds_since_1970}>
@@ -1922,16 +1924,119 @@ is_leap_second(date::utc_time<Duration> const& ut)
     return {ls, ds};
 }
 
+namespace detail
+{
+
+  template <class Duration>
+  inline
+    std::chrono::duration<long double, days::period>
+    mjd(sys_time<Duration> tp)
+  {
+    using namespace std::chrono;
+
+    constexpr days off{ 40587 }; // 00:00:00.0 01/01/1970 UTC
+    return tp.time_since_epoch() + off;
+  }
+
+  template <class Duration>
+  Duration
+    pre_leap(sys_time<Duration> tp)
+  {
+    using namespace std::chrono;
+    using dsec = duration<long double>;
+    if (tp >= sys_days(1972_y / January / 1))
+      return seconds{ 10 };
+    if (tp < sys_days(1961_y / January / 1))
+      return Duration{ 0 };
+    if (tp < sys_days(1961_y / August / 1))
+      return duration_cast<Duration>(
+        dsec{ 1.422818 } +(mjd(tp) - days{ 37300 }).count() * dsec { 0.001296 });
+    if (tp < sys_days(1962_y / January / 1))
+      return duration_cast<Duration>(
+        dsec{ 1.372818 } +(mjd(tp) - days{ 37300 }).count() * dsec { 0.001296 });
+    if (tp < sys_days(1963_y / November / 1))
+      return duration_cast<Duration>(
+        dsec{ 1.845858 } +(mjd(tp) - days{ 37665 }).count() * dsec { 0.0011232 });
+    if (tp < sys_days(1964_y / January / 1))
+      return duration_cast<Duration>(
+        dsec{ 1.945858 } +(mjd(tp) - days{ 37665 }).count() * dsec { 0.0011232 });
+    if (tp < sys_days(1964_y / April / 1))
+      return duration_cast<Duration>(
+        dsec{ 3.240130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+    if (tp < sys_days(1964_y / September / 1))
+      return duration_cast<Duration>(
+        dsec{ 3.340130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+    if (tp < sys_days(1965_y / January / 1))
+      return duration_cast<Duration>(
+        dsec{ 3.440130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+    if (tp < sys_days(1965_y / March / 1))
+      return duration_cast<Duration>(
+        dsec{ 3.540130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+    if (tp < sys_days(1965_y / July / 1))
+      return duration_cast<Duration>(
+        dsec{ 3.640130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+    if (tp < sys_days(1965_y / September / 1))
+      return duration_cast<Duration>(
+        dsec{ 3.740130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+    if (tp < sys_days(1966_y / January / 1))
+      return duration_cast<Duration>(
+        dsec{ 3.840130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+    if (tp < sys_days(1968_y / February / 1))
+      return duration_cast<Duration>(
+        dsec{ 4.313170 } +(mjd(tp) - days{ 39126 }).count() * dsec { 0.002592 });
+    return duration_cast<Duration>(
+      dsec{ 4.213170 } +(mjd(tp) - days{ 39126 }).count() * dsec { 0.002592 });
+  }
+
+  template <class Duration>
+  Duration
+    utc_sys_offset_pre_leap(utc_time<Duration> tp)
+  {
+    /* 
+     * Provides the offset between UTC time and SYS time before discrete leap
+     * seconds were introduced, accurate to 1s.
+     * Dates derived using the formulae in detail::pre_leap() to determine when
+     * the offset rolls over to the next integer
+     */
+    using namespace std::chrono;
+    using dsec = duration<long double>;
+    if (tp >= to_utc_time((sys_days(1972_y / January   / 1))))
+      return seconds{ 2 };                        
+    if (tp >= to_utc_time((sys_days(1971_y / January   / 22))))
+      return seconds{ 1 };                            
+    if (tp >= to_utc_time((sys_days(1970_y / January   / 1))))
+      return seconds{ 0 };                             
+    if (tp >= to_utc_time((sys_days(1968_y / December  / 12))))
+      return seconds{ -1 }; 
+    if (tp >= to_utc_time((sys_days(1967_y / October   / 14))))
+      return seconds{ -2 };
+    if (tp >= to_utc_time((sys_days(1966_y / September / 23))))
+      return seconds{ -3 };
+    if (tp >= to_utc_time((sys_days(1965_y / July      / 21))))
+      return seconds{ -4 };                             
+    if (tp >= to_utc_time((sys_days(1964_y / April     / 14))))
+      return seconds{ -5 };                             
+    if (tp >= to_utc_time((sys_days(1962_y / March     / 19))))
+      return seconds{ -6 };                             
+    if (tp >= to_utc_time((sys_days(1961_y / January   / 1))))
+      return seconds{ -7 };
+    return seconds{ -8 };
+  }
+}  // namespace detail
+
 template <class Duration>
 sys_time<typename std::common_type<Duration, std::chrono::seconds>::type>
 utc_clock::to_sys(const utc_time<Duration>& ut)
 {
     using namespace std::chrono;
     using CD = typename std::common_type<Duration, seconds>::type;
+
+    auto const utc_sys_offset_pre_leap =
+      detail::utc_sys_offset_pre_leap<CD>(utc_time<CD>(ut.time_since_epoch()));
     auto ls = is_leap_second(ut);
-    auto tp = sys_time<CD>{ut.time_since_epoch() - ls.second};
+    auto tp = sys_time<CD>{ (ut.time_since_epoch() - utc_sys_offset_pre_leap) - ls.second };
     if (ls.first)
-        tp = floor<seconds>(tp) + seconds{1} - CD{1};
+      tp = floor<seconds>(tp) + seconds{ 1 } - CD{ 1 };
     return tp;
 }
 
@@ -1968,7 +2073,9 @@ to_stream(std::basic_ostream<CharT, Traits>& os, const CharT* fmt,
     const std::string abbrev("UTC");
     CONSTDATA seconds offset{0};
     auto ls = is_leap_second(t);
-    auto tp = sys_time<CT>{t.time_since_epoch() - ls.second};
+    auto const pre_leap = detail::pre_leap<CT>(sys_time<CT>(to_sys_time(t).time_since_epoch()))
+      - detail::pre_leap<CT>(sys_time<CT>(sys_days(year{ 1970 } / January / 1)));
+    auto tp = sys_time<CT>{t.time_since_epoch() - (ls.second + pre_leap) };
     auto const sd = floor<days>(tp);
     year_month_day ymd = sd;
     auto time = make_time(tp - sys_seconds{sd});
@@ -2057,73 +2164,6 @@ template <class Duration>
 
 using tai_seconds = tai_time<std::chrono::seconds>;
 
-namespace detail
-{
-
-template <class Duration>
-inline
-std::chrono::duration<long double, days::period>
-mjd(sys_time<Duration> tp)
-{
-    using namespace std::chrono;
-//     constexpr auto off = sys_days{1970_y/1/1} - (sys_days{-4713_y/11/24} + hours{12}) -
-//                          dday{2400000.5};
-    constexpr days off{40587};
-    return tp.time_since_epoch() + off;
-}
-
-template <class Duration>
-Duration
-pre_leap(sys_time<Duration> tp)
-{
-    using namespace std::chrono;
-    using dsec = duration<long double>;
-    if (tp >= sys_days(1972_y/January/1))
-        return seconds{10};
-    if (tp < sys_days(1961_y/January/1))
-        return Duration{0};
-    if (tp < sys_days(1961_y/August/1))
-        return duration_cast<Duration>(
-                   dsec{1.422818} + (mjd(tp) - days{37300}).count() * dsec{0.001296});
-    if (tp < sys_days(1962_y/January/1))
-        return duration_cast<Duration>(
-                   dsec{1.372818} + (mjd(tp) - days{37300}).count() * dsec{0.001296});
-    if (tp < sys_days(1963_y/November/1))
-        return duration_cast<Duration>(
-                   dsec{1.845858} + (mjd(tp) - days{37665}).count() * dsec{0.0011232});
-    if (tp < sys_days(1964_y/January/1))
-        return duration_cast<Duration>(
-                   dsec{1.945858} + (mjd(tp) - days{37665}).count() * dsec{0.0011232});
-    if (tp < sys_days(1964_y/April/1))
-        return duration_cast<Duration>(
-                   dsec{3.240130} + (mjd(tp) - days{38761}).count() * dsec{0.001296});
-    if (tp < sys_days(1964_y/September/1))
-        return duration_cast<Duration>(
-                   dsec{3.340130} + (mjd(tp) - days{38761}).count() * dsec{0.001296});
-    if (tp < sys_days(1965_y/January/1))
-        return duration_cast<Duration>(
-                   dsec{3.440130} + (mjd(tp) - days{38761}).count() * dsec{0.001296});
-    if (tp < sys_days(1965_y/March/1))
-        return duration_cast<Duration>(
-                   dsec{3.540130} + (mjd(tp) - days{38761}).count() * dsec{0.001296});
-    if (tp < sys_days(1965_y/July/1))
-        return duration_cast<Duration>(
-                   dsec{3.640130} + (mjd(tp) - days{38761}).count() * dsec{0.001296});
-    if (tp < sys_days(1965_y/September/1))
-        return duration_cast<Duration>(
-                   dsec{3.740130} + (mjd(tp) - days{38761}).count() * dsec{0.001296});
-    if (tp < sys_days(1966_y/January/1))
-        return duration_cast<Duration>(
-                   dsec{3.840130} + (mjd(tp) - days{38761}).count() * dsec{0.001296});
-    if (tp < sys_days(1968_y/February/1))
-        return duration_cast<Duration>(
-                   dsec{4.313170} + (mjd(tp) - days{39126}).count() * dsec{0.002592});
-    return duration_cast<Duration>(
-               dsec{4.213170} + (mjd(tp) - days{39126}).count() * dsec{0.002592});
-}
-
-}  // namespace detail
-
 template <class Duration>
 inline
 utc_time<typename std::common_type<Duration, std::chrono::seconds>::type>
@@ -2133,7 +2173,7 @@ tai_clock::to_utc(const tai_time<Duration>& t) NOEXCEPT
     using CD = typename std::common_type<Duration, seconds>::type;
     return utc_time<CD>{t.time_since_epoch()} -
             (sys_days(year{1970}/January/1) - sys_days(year{1958}/January/1) +
-             detail::pre_leap<CD>(sys_time<CD>(to_local(t).time_since_epoch())));
+             detail::pre_leap<CD>(sys_time<CD>(sys_days(year{ 1970 } / January / 1).time_since_epoch())));
 }
 
 template <class Duration>
@@ -2145,7 +2185,7 @@ tai_clock::from_utc(const utc_time<Duration>& t) NOEXCEPT
     using CD = typename std::common_type<Duration, seconds>::type;
     return tai_time<CD>{t.time_since_epoch()} +
             (sys_days(year{1970}/January/1) - sys_days(year{1958}/January/1) +
-             detail::pre_leap<CD>(sys_time<CD>(t.time_since_epoch())));
+             detail::pre_leap<CD>(sys_time<CD>(sys_days(year{ 1970 } / January / 1).time_since_epoch())));
 }
 
 inline
