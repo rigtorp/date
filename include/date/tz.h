@@ -1888,8 +1888,7 @@ utc_clock::from_sys(const sys_time<Duration>& st)
 {
     using namespace std::chrono;
     using CD = typename std::common_type<Duration, seconds>::type;
-    auto const pre_leap = detail::pre_leap<CD>(sys_time<CD>(st.time_since_epoch()))
-      - detail::pre_leap<CD>(sys_time<CD>(sys_days(year{ 1970 } / January / 1)));
+    auto const pre_leap = detail::pre_leap<CD>(sys_time<CD>(st.time_since_epoch()));
     auto const& leaps = get_tzdb().leaps;
     auto const lt = std::upper_bound(leaps.begin(), leaps.end(), st);
     return utc_time<CD>{st.time_since_epoch() + pre_leap + seconds{lt-leaps.begin()} };
@@ -1944,48 +1943,53 @@ namespace detail
   {
     using namespace std::chrono;
     using dnano = duration<long double, std::ratio<1, 1000000000>>;
+
+    int64_t leap_nano_at_utc_epoch = 8000082000;
+
     if (tp >= sys_days(1972_y / January / 1))
-      return seconds{ 10 };
+      return round<Duration>(
+        dnano{ 10000000000 - leap_nano_at_utc_epoch });
     if (tp < sys_days(1961_y / January / 1))
-      return Duration{ 0 };
+      return round<Duration>(
+        dnano{ -leap_nano_at_utc_epoch });
     if (tp < sys_days(1961_y / August / 1))
-      return duration_cast<Duration>(
-        dnano{ 1422818000 } +(mjd(tp) - days{ 37300 }).count() * dnano { 1296000.0 });
+      return round<Duration>(
+        dnano{ 1422818000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 37300 }).count() * dnano { 1296000.0 });
     if (tp < sys_days(1962_y / January / 1))
-      return duration_cast<Duration>(
-        dnano{ 1372818000 } +(mjd(tp) - days{ 37300 }).count() * dnano { 1296000.0 });
+      return round<Duration>(
+        dnano{ 1372818000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 37300 }).count() * dnano { 1296000.0 });
     if (tp < sys_days(1963_y / November / 1))
-      return duration_cast<Duration>(
-        dnano{ 1845858000 } +(mjd(tp) - days{ 37665 }).count() * dnano { 1123200.0 });
+      return round<Duration>(
+        dnano{ 1845858000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 37665 }).count() * dnano { 1123200.0 });
     if (tp < sys_days(1964_y / January / 1))
-      return duration_cast<Duration>(
-        dnano{ 1945858000 } +(mjd(tp) - days{ 37665 }).count() * dnano { 1123200.0 });
+      return round<Duration>(
+        dnano{ 1945858000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 37665 }).count() * dnano { 1123200.0 });
     if (tp < sys_days(1964_y / April / 1))
-      return duration_cast<Duration>(
-        dnano{ 3240130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
+      return round<Duration>(
+        dnano{ 3240130000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
     if (tp < sys_days(1964_y / September / 1))
-      return duration_cast<Duration>(
-        dnano{ 3340130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
+      return round<Duration>(
+        dnano{ 3340130000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
     if (tp < sys_days(1965_y / January / 1))
-      return duration_cast<Duration>(
-        dnano{ 3440130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
+      return round<Duration>(
+        dnano{ 3440130000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
     if (tp < sys_days(1965_y / March / 1))
-      return duration_cast<Duration>(
-        dnano{ 3540130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
+      return round<Duration>(
+        dnano{ 3540130000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
     if (tp < sys_days(1965_y / July / 1))
-      return duration_cast<Duration>(
-        dnano{ 3640130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
+      return round<Duration>(
+        dnano{ 3640130000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
     if (tp < sys_days(1965_y / September / 1))
-      return duration_cast<Duration>(
-        dnano{ 3740130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
+      return round<Duration>(
+        dnano{ 3740130000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000.0 });
     if (tp < sys_days(1966_y / January / 1))
-      return duration_cast<Duration>(
-        dnano{ 3840130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000 });
+      return round<Duration>(
+        dnano{ 3840130000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000 });
     if (tp < sys_days(1968_y / February / 1))
-      return duration_cast<Duration>(
-        dnano{ 4313170000 } +(mjd(tp) - days{ 39126 }).count() * dnano { 2592000 });
-    return duration_cast<Duration>(
-      dnano{ 4213170000 } +(mjd(tp) - days{ 39126 }).count() * dnano { 2592000 });
+      return round<Duration>(
+        dnano{ 4313170000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 39126 }).count() * dnano { 2592000 });
+    return round<Duration>(
+      dnano{ 4213170000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 39126 }).count() * dnano { 2592000 });
   }
 
   template <class Duration>
@@ -2008,102 +2012,102 @@ namespace detail
 
     if (tp >= to_utc_time<Duration>(sys_days(1972_y / January / 1)))
     {
-      return duration_cast<Duration>(dnano{ 1999918000 });
+      return round<Duration>(dnano{ 1999918000 }); // 10s - 8.000082s
     }
     else if (tp < to_utc_time<Duration>(sys_days(1961_y / January / 1)))
     {
-      return duration_cast<Duration>(dnano{ -8000082000 });
+      return round<Duration>(dnano{ -8000082000 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1961_y / August / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -283996806577264000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 6577264000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 6577264000.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1962_y / January / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -265680006352512000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 6352512000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 6352512000.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1963_y / November / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001123200, 1000000000>>;
       auto epoch_start = dnano{ -252460806154224000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1123200) - 6154224000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1123200) - 6154224000.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1964_y / January / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001123200, 1000000000>>;
       auto epoch_start = dnano{ -194659205302803200 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1123200) - 5302803200.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1123200) - 5302803200.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1964_y / April / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -189388805234288000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 5234288000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 5234288000.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1964_y / September / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -181526405016352000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 5016352000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 5016352000.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1965_y / January / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -168307204718064000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4718064000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4718064000.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1965_y / March / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -157766404459952000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4459952000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4459952000.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1965_y / July / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -152668804283488000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4283488000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4283488000.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1965_y / September / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -142128004025376000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4025376000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4025376000.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1966_y / January / 1)))
     {
       using this_utc_day = std::chrono::duration<float, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -136771203845024000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 3845024000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 3845024000.0 });
     }
     else if (tp < to_utc_time<Duration>(sys_days(1968_y / February / 1)))
     {
       using this_utc_day   = std::chrono::duration<float, std::ratio<86400002592000, 1000000000>>;
       auto epoch_start     = dnano{ -126230403686912000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{(days_into_epoch.count() * 2592000) - 3686912000.0 });
+      return round<Duration>(dnano{(days_into_epoch.count() * 2592000) - 3686912000.0 });
     }
     else  // (tp < to_utc_time<Duration>(sys_days(1972_y / January / 1)))
     {
       using this_utc_day   = std::chrono::duration<float, std::ratio<86400002592000, 1000000000>>;
       auto epoch_start     = dnano{ -60480001814400000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
-      return duration_cast<Duration>(dnano{ (days_into_epoch.count() * 2592000) - 1814400000.0 });
+      return round<Duration>(dnano{ (days_into_epoch.count() * 2592000) - 1814400000.0 });
     }
   }
 }  // namespace detail
@@ -2256,7 +2260,7 @@ tai_clock::to_utc(const tai_time<Duration>& t) NOEXCEPT
     using namespace std::chrono;
     using CD = typename std::common_type<Duration, seconds>::type;
     return utc_time<CD>{t.time_since_epoch()} -
-            (sys_days(year{1970}/January/1) - sys_days(year{1958}/January/1) +
+            (sys_days(year{1970}/January/1) - sys_days(year{1958}/January/1) + 8s + // FIXME
              detail::pre_leap<CD>(sys_time<CD>(sys_days(year{ 1970 } / January / 1).time_since_epoch())));
 }
 
@@ -2268,7 +2272,7 @@ tai_clock::from_utc(const utc_time<Duration>& t) NOEXCEPT
     using namespace std::chrono;
     using CD = typename std::common_type<Duration, seconds>::type;
     return tai_time<CD>{t.time_since_epoch()} +
-            (sys_days(year{1970}/January/1) - sys_days(year{1958}/January/1) +
+            (sys_days(year{1970}/January/1) - sys_days(year{1958}/January/1) + 8s + // FIXME
              detail::pre_leap<CD>(sys_time<CD>(sys_days(year{ 1970 } / January / 1).time_since_epoch())));
 }
 
