@@ -1943,84 +1943,136 @@ namespace detail
     pre_leap(sys_time<Duration> tp)
   {
     using namespace std::chrono;
-    using dsec = duration<long double>;
+    using dnano = duration<long double, std::ratio<1, 1000000000>>;
     if (tp >= sys_days(1972_y / January / 1))
       return seconds{ 10 };
     if (tp < sys_days(1961_y / January / 1))
       return Duration{ 0 };
     if (tp < sys_days(1961_y / August / 1))
       return duration_cast<Duration>(
-        dsec{ 1.422818 } +(mjd(tp) - days{ 37300 }).count() * dsec { 0.001296 });
+        dnano{ 1422818000 } +(mjd(tp) - days{ 37300 }).count() * dnano { 1296000 });
     if (tp < sys_days(1962_y / January / 1))
       return duration_cast<Duration>(
-        dsec{ 1.372818 } +(mjd(tp) - days{ 37300 }).count() * dsec { 0.001296 });
+        dnano{ 1372818000 } +(mjd(tp) - days{ 37300 }).count() * dnano { 1296000 });
     if (tp < sys_days(1963_y / November / 1))
       return duration_cast<Duration>(
-        dsec{ 1.845858 } +(mjd(tp) - days{ 37665 }).count() * dsec { 0.0011232 });
+        dnano{ 1845858000 } +(mjd(tp) - days{ 37665 }).count() * dnano { 1123200 });
     if (tp < sys_days(1964_y / January / 1))
       return duration_cast<Duration>(
-        dsec{ 1.945858 } +(mjd(tp) - days{ 37665 }).count() * dsec { 0.0011232 });
+        dnano{ 1945858000 } +(mjd(tp) - days{ 37665 }).count() * dnano { 1123200 });
     if (tp < sys_days(1964_y / April / 1))
       return duration_cast<Duration>(
-        dsec{ 3.240130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+        dnano{ 3240130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000 });
     if (tp < sys_days(1964_y / September / 1))
       return duration_cast<Duration>(
-        dsec{ 3.340130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+        dnano{ 3340130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000 });
     if (tp < sys_days(1965_y / January / 1))
       return duration_cast<Duration>(
-        dsec{ 3.440130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+        dnano{ 3440130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000 });
     if (tp < sys_days(1965_y / March / 1))
       return duration_cast<Duration>(
-        dsec{ 3.540130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+        dnano{ 3540130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000 });
     if (tp < sys_days(1965_y / July / 1))
       return duration_cast<Duration>(
-        dsec{ 3.640130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+        dnano{ 3640130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000 });
     if (tp < sys_days(1965_y / September / 1))
       return duration_cast<Duration>(
-        dsec{ 3.740130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+        dnano{ 3740130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000 });
     if (tp < sys_days(1966_y / January / 1))
       return duration_cast<Duration>(
-        dsec{ 3.840130 } +(mjd(tp) - days{ 38761 }).count() * dsec { 0.001296 });
+        dnano{ 3840130000 } +(mjd(tp) - days{ 38761 }).count() * dnano { 1296000 });
     if (tp < sys_days(1968_y / February / 1))
       return duration_cast<Duration>(
-        dsec{ 4.313170 } +(mjd(tp) - days{ 39126 }).count() * dsec { 0.002592 });
+        dnano{ 4313170000 } +(mjd(tp) - days{ 39126 }).count() * dnano { 2592000 });
     return duration_cast<Duration>(
-      dsec{ 4.213170 } +(mjd(tp) - days{ 39126 }).count() * dsec { 0.002592 });
+      dnano{ 4213170000 } +(mjd(tp) - days{ 39126 }).count() * dnano { 2592000 });
   }
 
   template <class Duration>
   Duration
     utc_sys_offset_pre_leap(utc_time<Duration> tp)
   {
-    /* 
-     * Provides the offset between UTC time and SYS time before discrete leap
-     * seconds were introduced, accurate to 1s.
-     * Dates derived using the formulae in detail::pre_leap() to determine when
-     * the offset rolls over to the next integer
-     */
     using namespace std::chrono;
-    using dsec = duration<long double>;
-    if (tp >= to_utc_time((sys_days(1972_y / January   / 1))))
-      return seconds{ 2 };                        
-    if (tp >= to_utc_time((sys_days(1971_y / January   / 22))))
-      return seconds{ 1 };                            
-    if (tp >= to_utc_time((sys_days(1970_y / January   / 1))))
-      return seconds{ 0 };                             
-    if (tp >= to_utc_time((sys_days(1968_y / December  / 12))))
-      return seconds{ -1 }; 
-    if (tp >= to_utc_time((sys_days(1967_y / October   / 14))))
-      return seconds{ -2 };
-    if (tp >= to_utc_time((sys_days(1966_y / September / 23))))
-      return seconds{ -3 };
-    if (tp >= to_utc_time((sys_days(1965_y / July      / 21))))
-      return seconds{ -4 };                             
-    if (tp >= to_utc_time((sys_days(1964_y / April     / 14))))
-      return seconds{ -5 };                             
-    if (tp >= to_utc_time((sys_days(1962_y / March     / 19))))
-      return seconds{ -6 };                             
-    if (tp >= to_utc_time((sys_days(1961_y / January   / 1))))
-      return seconds{ -7 };
-    return seconds{ -8 };
+    using dnano = duration<long double, std::ratio<1, 1000000000>>;
+
+    sys_days start_epoch;
+    sys_days stop_epoch;
+
+    if (tp >= to_utc_time<Duration>(sys_days(1972_y / January / 1)))
+    {
+      return duration_cast<Duration>(dnano{ 1999918000 });
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1961_y / January / 1)))
+    {
+      return duration_cast<Duration>(dnano{ -8000082000 });
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1961_y / August / 1)))
+    {
+      start_epoch = sys_days(1961_y / January / 1);
+      stop_epoch = sys_days(1961_y / July / 31);
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1962_y / January / 1)))
+    {
+      start_epoch = sys_days(1961_y / August / 1);
+      stop_epoch = sys_days(1961_y / December / 31);
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1963_y / November / 1)))
+    {
+      start_epoch = sys_days(1962_y / January / 1);
+      stop_epoch = sys_days(1963_y / October / 31);
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1964_y / January / 1)))
+    {
+      start_epoch = sys_days(1963_y / November / 1);
+      stop_epoch = sys_days(1963_y / December / 31);
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1964_y / April / 1)))
+    {
+      start_epoch = sys_days(1964_y / January / 1);
+      stop_epoch = sys_days(1964_y / March / 31);
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1964_y / September / 1)))
+    {
+      start_epoch = sys_days(1964_y / April / 1);
+      stop_epoch = sys_days(1964_y / August / 31);
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1965_y / March / 1)))
+    {
+      start_epoch = sys_days(1964_y / September / 1);
+      stop_epoch = sys_days(1965_y / February / 28);
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1965_y / July / 1)))
+    {
+      start_epoch = sys_days(1965_y / March / 1);
+      stop_epoch = sys_days(1965_y / June / 30);
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1965_y / September / 1)))
+    {
+      start_epoch = sys_days(1965_y / July / 1);
+      stop_epoch  = sys_days(1965_y / August / 31);
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1966_y / January / 1)))
+    {
+      start_epoch = sys_days(1965_y / September / 1);
+      stop_epoch  = sys_days(1965_y / December / 31);
+    }
+    else if (tp < to_utc_time<Duration>(sys_days(1968_y / February / 1)))
+    {
+      start_epoch = sys_days(1966_y / January / 1);
+      stop_epoch  = sys_days(1968_y / January / 31);
+    }
+    else  // (tp < to_utc_time<Duration>(sys_days(1972_y / January / 1)))
+    {
+      start_epoch = sys_days(1968_y / February / 1);
+      stop_epoch  = sys_days(1971_y / December / 31);
+    }
+
+    auto y2 = to_utc_time<Duration>(stop_epoch);
+    auto y1 = to_utc_time<Duration>(start_epoch);
+    auto run  = mjd(stop_epoch) - mjd(start_epoch);
+    auto grad = (y2 - y1) / run;
+    return duration_cast<Duration>(tp.time_since_epoch() - dnano{ tp.time_since_epoch() / grad });
+
   }
 }  // namespace detail
 
