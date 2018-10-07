@@ -1995,6 +1995,17 @@ namespace detail
     using namespace std::chrono;
     using dnano = duration<long double, std::ratio<1, 1000000000>>;
 
+    /*
+     * Concept: 
+     * 0) get start UTC time of the relevant mini epoch
+     * 1) determine how many 'UTC seconds' elapse per standard '86400s' sys 
+     *    day during this specific mini epoch
+     * 2) determine how many 'UTC days' into this mini epoch we are
+     * 3) offset between UTC and sys time = 
+     *      offset at beginning of mini epoch + 
+     *      (days into epoch * offset/day)
+     */
+
     if (tp >= to_utc_time<Duration>(sys_days(1972_y / January / 1)))
     {
       return duration_cast<Duration>(dnano{ 1999918000 });
