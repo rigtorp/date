@@ -55,8 +55,13 @@ main()
    {
      auto lu = local_days{1970_y/January/1_d};
      auto ut = clock_cast<utc_clock>(lu);
+
      assert(clock_cast<local_t>(ut) == lu);
      assert(ut.time_since_epoch() == seconds(0));
+     
+     auto lt = local_days{ 1970_y / January / 1_d } - 8s;
+     auto tt = clock_cast<tai_clock>(lt);
+     assert(clock_cast<local_t>(tt) == lt);
    }
 
    // utc leap second
@@ -108,10 +113,12 @@ main()
      auto lu = local_days{1980_y/January/Sunday[1]};
      auto ut = clock_cast<utc_clock>(lu);
      assert(clock_cast<gps_clock>(ut) == gt);
+     assert(ut.time_since_epoch() == seconds(315964811));
 
      auto lt = local_days{1980_y/January/Sunday[1]} + seconds(19);
      auto tt = clock_cast<tai_clock>(lt);
      assert(clock_cast<gps_clock>(tt) == gt);
+     assert(tt.time_since_epoch() == seconds(694656019));
    }
 
    // gps 2000 example
