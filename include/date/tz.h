@@ -1882,14 +1882,6 @@ template <class Duration>
 
 using utc_seconds = utc_time<std::chrono::seconds>;
 
-template <class Duration>
-inline
-utc_time<typename std::common_type<Duration, std::chrono::seconds>::type>
-to_utc_time(const sys_time<Duration>& t)
-{
-  return utc_clock::from_sys(t);
-}
-
 namespace detail
 {
 
@@ -1993,99 +1985,99 @@ namespace detail
      *      (days into epoch * offset/day)
      */
 
-    if (tp >= to_utc_time<Duration>(sys_days(1972_y / January / 1)))
+    if (tp >= utc_clock::from_sys<Duration>(sys_days(1972_y / January / 1)))
     {
       return round<Duration>(dnano{ 1999918000 }); // 10s - 8.000082s
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1961_y / January / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1961_y / January / 1)))
     {
       return round<Duration>(dnano{ -8000082000 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1961_y / August / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1961_y / August / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -283996806577264000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 6577264000.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1962_y / January / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1962_y / January / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -265680006352512000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 6352512000.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1963_y / November / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1963_y / November / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001123200, 1000000000>>;
       auto epoch_start = dnano{ -252460806154224000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1123200) - 6154224000.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1964_y / January / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1964_y / January / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001123200, 1000000000>>;
       auto epoch_start = dnano{ -194659205302803200 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1123200) - 5302803200.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1964_y / April / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1964_y / April / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -189388805234288000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 5234288000.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1964_y / September / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1964_y / September / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -181526405016352000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 5016352000.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1965_y / January / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1965_y / January / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -168307204718064000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4718064000.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1965_y / March / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1965_y / March / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -157766404459952000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4459952000.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1965_y / July / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1965_y / July / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -152668804283488000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4283488000.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1965_y / September / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1965_y / September / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -142128004025376000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 4025376000.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1966_y / January / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1966_y / January / 1)))
     {
       using this_utc_day = std::chrono::duration<long double, std::ratio<86400001296000, 1000000000>>;
       auto epoch_start = dnano{ -136771203845024000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{ (days_into_epoch.count() * 1296000) - 3845024000.0 });
     }
-    else if (tp < to_utc_time<Duration>(sys_days(1968_y / February / 1)))
+    else if (tp < utc_clock::from_sys<Duration>(sys_days(1968_y / February / 1)))
     {
       using this_utc_day   = std::chrono::duration<long double, std::ratio<86400002592000, 1000000000>>;
       auto epoch_start     = dnano{ -126230403686912000 };
       auto days_into_epoch = this_utc_day{ tp.time_since_epoch() - epoch_start };
       return round<Duration>(dnano{(days_into_epoch.count() * 2592000) - 3686912000.0 });
     }
-    else  // (tp < to_utc_time<Duration>(sys_days(1972_y / January / 1)))
+    else  // (tp < utc_clock::from_sys<Duration>(sys_days(1972_y / January / 1)))
     {
       using this_utc_day   = std::chrono::duration<long double, std::ratio<86400002592000, 1000000000>>;
       auto epoch_start     = dnano{ -60480001814400000 };
@@ -2930,6 +2922,14 @@ to_sys_time(const gps_time<Duration>& t)
     return utc_clock::to_sys(gps_clock::to_utc(t));
 }
 
+
+template <class Duration>
+inline
+utc_time<typename std::common_type<Duration, std::chrono::seconds>::type>
+to_utc_time(const sys_time<Duration>& t)
+{
+    return utc_clock::from_sys(t);
+}
 
 template <class Duration>
 inline
