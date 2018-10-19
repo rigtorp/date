@@ -1882,6 +1882,14 @@ template <class Duration>
 
 using utc_seconds = utc_time<std::chrono::seconds>;
 
+template <class Duration>
+inline
+utc_time<typename std::common_type<Duration, std::chrono::seconds>::type>
+to_utc_time(const sys_time<Duration>& t)
+{
+  return utc_clock::from_sys(t);
+}
+
 namespace detail
 {
 
@@ -2922,14 +2930,6 @@ to_sys_time(const gps_time<Duration>& t)
     return utc_clock::to_sys(gps_clock::to_utc(t));
 }
 
-
-template <class Duration>
-inline
-utc_time<typename std::common_type<Duration, std::chrono::seconds>::type>
-to_utc_time(const sys_time<Duration>& t)
-{
-    return utc_clock::from_sys(t);
-}
 
 template <class Duration>
 inline
