@@ -1882,47 +1882,6 @@ template <class Duration>
 
 using utc_seconds = utc_time<std::chrono::seconds>;
 
-template <class Duration>
-utc_time<typename std::common_type<Duration, std::chrono::seconds>::type>
-utc_clock::from_sys(const sys_time<Duration>& st)
-{
-    using namespace std::chrono;
-    using CD = typename std::common_type<Duration, seconds>::type;
-    auto const pre_leap = detail::pre_leap_from_utc_epoch<CD>(sys_time<CD>(st.time_since_epoch()));
-    auto const& leaps = get_tzdb().leaps;
-    auto const lt = std::upper_bound(leaps.begin(), leaps.end(), st);
-    return utc_time<CD>{st.time_since_epoch() + pre_leap + seconds{lt-leaps.begin()} };
-}
-
-// Return pair<is_leap_second, seconds{number_of_leap_seconds_since_1970}>
-// first is true if ut is during a leap second insertion, otherwise false.
-// If ut is during a leap second insertion, that leap second is included in the count
-template <class Duration>
-std::pair<bool, std::chrono::seconds>
-is_leap_second(date::utc_time<Duration> const& ut)
-{
-    using namespace date;
-    using namespace std::chrono;
-    using duration = typename std::common_type<Duration, seconds>::type;
-    auto const& leaps = get_tzdb().leaps;
-    auto tp = sys_time<duration>{ut.time_since_epoch()};
-    auto const lt = std::upper_bound(leaps.begin(), leaps.end(), tp);
-    auto ds = seconds{lt-leaps.begin()};
-    tp -= ds;
-    auto ls = false;
-    if (lt > leaps.begin())
-    {
-        if (tp < lt[-1])
-        {
-            if (tp >= lt[-1].date() - seconds{1})
-                ls = true;
-            else
-                --ds;
-        }
-    }
-    return {ls, ds};
-}
-
 namespace detail
 {
 
@@ -2127,6 +2086,49 @@ namespace detail
     }
   }
 }  // namespace detail
+
+template <class Duration>
+utc_time<typename std::common_type<Duration, std::chrono::seconds>::type>
+utc_clock::from_sys(const sys_time<Duration>& st)
+{
+    using namespace std::chrono;
+    using CD = typename std::common_type<Duration, seconds>::type;
+    auto const pre_leap = detail::pre_leap_from_utc_epoch<CD>(sys_time<CD>(st.time_since_epoch()));
+    auto const& leaps = get_tzdb().leaps;
+    auto const lt = std::upper_bound(leaps.begin(), leaps.end(), st);
+    return utc_time<CD>{st.time_since_epoch() + pre_leap + seconds{lt-leaps.begin()} };
+}
+
+// Return pair<is_leap_second, seconds{number_of_leap_seconds_since_1970}>
+// first is true if ut is during a leap second insertion, otherwise false.
+// If ut is during a leap second insertion, that leap second is included in the count
+template <class Duration>
+std::pair<bool, std::chrono::seconds>
+is_leap_second(date::utc_time<Duration> const& ut)
+{
+    using namespace date;
+    using namespace std::chrono;
+    using duration = typename std::common_type<Duration, seconds>::type;
+    auto const& leaps = get_tzdb().leaps;
+    auto tp = sys_time<duration>{ut.time_since_epoch()};
+    auto const lt = std::upper_bound(leaps.begin(), leaps.end(), tp);
+    auto ds = seconds{lt-leaps.begin()};
+    tp -= ds;
+    auto ls = false;
+    if (lt > leaps.begin())
+    {
+        if (tp < lt[-1])
+        {
+            if (tp >= lt[-1].date() - seconds{1})
+                ls = true;
+            else
+                --ds;
+        }
+    }
+    return {ls, ds};
+}
+
+
 
 template <class Duration>
 sys_time<typename std::common_type<Duration, std::chrono::seconds>::type>
