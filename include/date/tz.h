@@ -1885,21 +1885,22 @@ using utc_seconds = utc_time<std::chrono::seconds>;
 namespace detail
 {
 
-  template <class Duration>
-  inline
-    std::chrono::duration<long double, days::period>
-    mjd(sys_time<Duration> tp)
-  {
-    using namespace std::chrono;
+template <class Duration>
+inline
+  std::chrono::duration<long double, days::period>
+  mjd(sys_time<Duration> tp)
+{
+  using namespace std::chrono;
 
-    constexpr days off{ 40587 }; // 00:00:00.0 01/01/1970 UTC
-    return tp.time_since_epoch() + off;
-  }
+  constexpr days off{ 40587 }; // 00:00:00.0 01/01/1970 UTC
+  return tp.time_since_epoch() + off;
+}
 
-  template <class Duration>
-  Duration
-    pre_leap_from_utc_epoch(sys_time<Duration> tp)
-  {
+template <class Duration>
+CONSTCD14
+Duration
+pre_leap_from_utc_epoch(sys_time<Duration> tp)
+{
     using namespace std::chrono;
     using dnano = duration<long double, std::ratio<1, 1000000000>>;
 
@@ -1958,19 +1959,91 @@ namespace detail
       dnano{ 4213170000 - leap_nano_at_utc_epoch } +(mjd(tp) - days{ 39126 }).count() * dnano { 2592000 });
   }
 
-  template <class Duration>
-  Duration
-    pre_leap_from_tai_epoch(sys_time<Duration> tp)
-  {
-    using namespace std::chrono;
-    using dnano = duration<long double, std::ratio<1, 1000000000>>;
-    return round<Duration>(pre_leap_from_utc_epoch<Duration>(tp) + dnano{ 8000082000 });
-  }
 
-  template <class Duration>
-  Duration
-    utc_sys_offset_pre_leap(utc_time<Duration> tp)
-  {
+// Data drawn from http://hpiers.obspm.fr/eop-pc/index.php?index=TAI-UTC_tab
+
+template <class Duration>
+CONSTCD14
+Duration
+pre_leap_from_utc_epoch2(sys_time<Duration> tp)
+{
+    using namespace std::chrono;
+    using ddays = duration<long double, days::period>;
+
+    CONSTDA14 auto jan61 = sys_days(1961_y/January/1);
+    CONSTDA14 auto aug61 = sys_days(1961_y/August/1);
+    CONSTDA14 auto jan62 = sys_days(1962_y/January/1);
+    CONSTDA14 auto nov63 = sys_days(1963_y/November/1);
+    CONSTDA14 auto jan64 = sys_days(1964_y/January/1);
+    CONSTDA14 auto apr64 = sys_days(1964_y/April/1);
+    CONSTDA14 auto sep64 = sys_days(1964_y/September/1);
+    CONSTDA14 auto jan65 = sys_days(1965_y/January/1);
+    CONSTDA14 auto mar65 = sys_days(1965_y/March/1);
+    CONSTDA14 auto jul65 = sys_days(1965_y/July/1);
+    CONSTDA14 auto sep65 = sys_days(1965_y/September/1);
+    CONSTDA14 auto jan66 = sys_days(1966_y/January/1);
+    CONSTDA14 auto feb68 = sys_days(1968_y/February/1);
+    CONSTDA14 auto jan72 = sys_days(1972_y/January/1);
+
+    if (tp >= jan72)
+        return round<Duration>(nanoseconds{1999918000});
+    if (tp < jan61)
+        return round<Duration>(nanoseconds{-8000082000});
+    if (tp < aug61)
+        return round<Duration>(nanoseconds{-6577264000} +
+                               ddays{tp - jan61}.count() * nanoseconds{1296000});
+    if (tp < jan62)
+        return round<Duration>(nanoseconds{-6627264000} +
+                               ddays{tp - jan61}.count() * nanoseconds{1296000});
+    if (tp < nov63)
+        return round<Duration>(nanoseconds{-6154224000} +
+                               ddays{tp - jan62}.count() * nanoseconds{1123200});
+    if (tp < jan64)
+        return round<Duration>(nanoseconds{-6054224000} +
+                               ddays{tp - jan62}.count() * nanoseconds{1123200});
+    if (tp < apr64)
+        return round<Duration>(nanoseconds{-4759952000} +
+                               ddays{tp - jan65}.count() * nanoseconds{1296000});
+    if (tp < sep64)
+        return round<Duration>(nanoseconds{-4659952000} +
+                               ddays{tp - jan65}.count() * nanoseconds{1296000});
+    if (tp < jan65)
+        return round<Duration>(nanoseconds{-4559952000} +
+                               ddays{tp - jan65}.count() * nanoseconds{1296000});
+    if (tp < mar65)
+        return round<Duration>(nanoseconds{-4459952000} +
+                               ddays{tp - jan65}.count() * nanoseconds{1296000});
+    if (tp < jul65)
+        return round<Duration>(nanoseconds{-4359952000} +
+                               ddays{tp - jan65}.count() * nanoseconds{1296000});
+    if (tp < sep65)
+        return round<Duration>(nanoseconds{-4259952000} +
+                               ddays{tp - jan65}.count() * nanoseconds{1296000});
+    if (tp < jan66)
+        return round<Duration>(nanoseconds{-4159952000} +
+                               ddays{tp - jan65}.count() * nanoseconds{1296000});
+    if (tp < feb68)
+        return round<Duration>(nanoseconds{-3686912000} +
+                               ddays{tp - jan66}.count() * nanoseconds{2592000});
+    return round<Duration>(nanoseconds{-3786912000} +
+                           ddays{tp - jan66}.count() * nanoseconds{2592000});
+}
+
+template <class Duration>
+CONSTCD14
+Duration
+pre_leap_from_tai_epoch(sys_time<Duration> tp)
+{
+    using namespace std::chrono;
+    return round<Duration>(pre_leap_from_utc_epoch<Duration>(tp) + microseconds{8000082});
+}
+
+template <class Duration>
+CONSTCD14
+Duration
+pre_leap_from_utc_epoch(utc_time<Duration> tp)
+{
+    using namespace std;
     using namespace std::chrono;
     using dnano = duration<long double, std::ratio<1, 1000000000>>;
 
@@ -2085,6 +2158,147 @@ namespace detail
       return round<Duration>(dnano{ (days_into_epoch.count() * 2592000) - 1814400000.0 });
     }
   }
+
+
+template <class Duration>
+CONSTCD14
+Duration
+pre_leap_from_utc_epoch2(utc_time<Duration> tp)
+{
+    using namespace std;
+    using namespace std::chrono;
+
+    // Concept:
+    // 0) get start UTC time of the relevant mini epoch
+    // 1) determine how many 'UTC seconds' elapse per standard '86400s' sys
+    //    day during this specific mini epoch
+    // 2) determine how many 'UTC days' into this mini epoch we are
+    // 3) offset between UTC and sys time =
+    //      offset at beginning of mini epoch +
+    //      (days into epoch * offset/day)
+
+    CONSTDA14 utc_time<nanoseconds> jan61{nanoseconds{-283996806577264000}}; // 1961-01-01
+    CONSTDA14 utc_time<nanoseconds> aug61{nanoseconds{-265680006352512000}}; // 1961-08-01
+    CONSTDA14 utc_time<nanoseconds> jan62{nanoseconds{-252460806154224000}}; // 1962-01-01
+    CONSTDA14 utc_time<nanoseconds> nov63{nanoseconds{-194659205302803200}}; // 1963-11-01
+    CONSTDA14 utc_time<nanoseconds> jan64{nanoseconds{-189388805234288000}}; // 1964-01-01
+    CONSTDA14 utc_time<nanoseconds> apr64{nanoseconds{-181526405016352000}}; // 1964-04-01
+    CONSTDA14 utc_time<nanoseconds> sep64{nanoseconds{-168307204718064000}}; // 1964-09-01
+    CONSTDA14 utc_time<nanoseconds> jan65{nanoseconds{-157766404459952000}}; // 1965-01-01
+    CONSTDA14 utc_time<nanoseconds> mar65{nanoseconds{-152668804283488000}}; // 1965-03-01
+    CONSTDA14 utc_time<nanoseconds> jul65{nanoseconds{-142128004025376000}}; // 1965-07-01
+    CONSTDA14 utc_time<nanoseconds> sep65{nanoseconds{-136771203845024000}}; // 1965-09-01
+    CONSTDA14 utc_time<nanoseconds> jan66{nanoseconds{-126230403686912000}}; // 1966-01-01
+    CONSTDA14 utc_time<nanoseconds> feb68{nanoseconds{ -60480001814400000}}; // 1968-02-01
+    CONSTDA14 utc_time<nanoseconds> jan72{nanoseconds{  63072001999918000}}; // 1972-01-01
+
+    if (tp >= floor<Duration>(jan72))
+        return round<Duration>(nanoseconds{1999918000});
+    if (tp < floor<Duration>(jan61))
+        return round<Duration>(nanoseconds{-8000082000});
+    if (tp < floor<Duration>(aug61))
+    {
+        CONSTDATA auto K = 1296000;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(jan61 - time_point_cast<days>(jan61) +
+                               this_utc_day{tp - jan61}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(jan62))
+    {
+        CONSTDATA auto K = 1296000;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(aug61 - time_point_cast<days>(aug61) +
+                               this_utc_day{tp - aug61}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(nov63))
+    {
+        CONSTDATA auto K = 1123200;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(jan62 - time_point_cast<days>(jan62) +
+                               this_utc_day{tp - jan62}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(jan64))
+    {
+        CONSTDATA auto K = 1123200;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(nov63 - time_point_cast<days>(nov63) +
+                               this_utc_day{tp - nov63}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(apr64))
+    {
+        CONSTDATA auto K = 1296000;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(jan64 - time_point_cast<days>(jan64) +
+                               this_utc_day{tp - jan64}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(sep64))
+    {
+        CONSTDATA auto K = 1296000;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(apr64 - time_point_cast<days>(apr64) +
+                               this_utc_day{tp - apr64}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(jan65))
+    {
+        CONSTDATA auto K = 1296000;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(sep64 - time_point_cast<days>(sep64) +
+                               this_utc_day{tp - sep64}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(mar65))
+    {
+        CONSTDATA auto K = 1296000;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(jan65 - time_point_cast<days>(jan65) +
+                               this_utc_day{tp - jan65}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(jul65))
+    {
+        CONSTDATA auto K = 1296000;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(mar65 - time_point_cast<days>(mar65) +
+                               this_utc_day{tp - mar65}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(sep65))
+    {
+        CONSTDATA auto K = 1296000;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(jul65 - time_point_cast<days>(jul65) +
+                               this_utc_day{tp - jul65}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(jan66))
+    {
+        CONSTDATA auto K = 1296000;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(sep65 - time_point_cast<days>(sep65) +
+                               this_utc_day{tp - sep65}.count() * nanoseconds{K});
+    }
+    if (tp < floor<Duration>(feb68))
+    {
+        CONSTDATA auto K = 2592000;
+        using R = ratio_add<days::period, ratio<K, nano::den>>;
+        using this_utc_day = duration<long double, R>;
+        return round<Duration>(jan66 - time_point_cast<days>(jan66) +
+                               this_utc_day{tp - jan66}.count() * nanoseconds{K});
+    }
+    CONSTDATA auto K = 2592000;
+    using R = ratio_add<days::period, ratio<K, nano::den>>;
+    using this_utc_day = duration<long double, R>;
+    return round<Duration>(feb68 - time_point_cast<days>(feb68) +
+                           this_utc_day{tp - feb68}.count() * nanoseconds{K});
+}
+
 }  // namespace detail
 
 template <class Duration>
@@ -2093,7 +2307,7 @@ utc_clock::from_sys(const sys_time<Duration>& st)
 {
     using namespace std::chrono;
     using CD = typename std::common_type<Duration, seconds>::type;
-    auto const pre_leap = detail::pre_leap_from_utc_epoch<CD>(sys_time<CD>(st.time_since_epoch()));
+    auto const pre_leap = detail::pre_leap_from_utc_epoch<CD>(st);
     auto const& leaps = get_tzdb().leaps;
     auto const lt = std::upper_bound(leaps.begin(), leaps.end(), st);
     return utc_time<CD>{st.time_since_epoch() + pre_leap + seconds{lt-leaps.begin()} };
@@ -2137,12 +2351,11 @@ utc_clock::to_sys(const utc_time<Duration>& ut)
     using namespace std::chrono;
     using CD = typename std::common_type<Duration, seconds>::type;
 
-    auto const utc_sys_offset_pre_leap =
-      detail::utc_sys_offset_pre_leap<CD>(utc_time<CD>(ut.time_since_epoch()));
+    auto const utc_sys_offset_pre_leap = detail::pre_leap_from_utc_epoch<CD>(ut);
     auto ls = is_leap_second(ut);
-    auto tp = sys_time<CD>{ (ut.time_since_epoch() - utc_sys_offset_pre_leap) - ls.second };
+    auto tp = sys_time<CD>{ut.time_since_epoch() - utc_sys_offset_pre_leap - ls.second};
     if (ls.first)
-      tp = floor<seconds>(tp) + seconds{ 1 } - CD{ 1 };
+        tp = floor<seconds>(tp) + seconds{1} - CD{1};
     return tp;
 }
 
@@ -2179,7 +2392,7 @@ to_stream(std::basic_ostream<CharT, Traits>& os, const CharT* fmt,
     const std::string abbrev("UTC");
     CONSTDATA seconds offset{0};
     auto ls = is_leap_second(t);
-    auto const pre_leap = detail::pre_leap_from_utc_epoch<CT>(sys_time<CT>(to_sys_time(t).time_since_epoch()));
+    auto const pre_leap = detail::pre_leap_from_utc_epoch<CT>(t);
     auto tp = sys_time<CT>{t.time_since_epoch() - (ls.second + pre_leap) };
     auto const sd = floor<days>(tp);
     year_month_day ymd = sd;
@@ -2276,9 +2489,9 @@ tai_clock::to_utc(const tai_time<Duration>& t) NOEXCEPT
 {
     using namespace std::chrono;
     using CD = typename std::common_type<Duration, seconds>::type;
-    return utc_time<CD>{t.time_since_epoch() } -
-      (sys_days(year{ 1970 } / January / 1) - sys_days(year{ 1958 } / January / 1) +
-             detail::pre_leap_from_tai_epoch<CD>(sys_time<CD>(sys_days(year{ 1970 } / January / 1).time_since_epoch())));
+    return utc_time<CD>{t.time_since_epoch()} -
+            (sys_days(year{1970}/January/1) - sys_days(year{1958}/January/1) +
+             detail::pre_leap_from_tai_epoch<CD>(sys_days(year{1970}/January/1)));
 }
 
 template <class Duration>
@@ -2289,8 +2502,8 @@ tai_clock::from_utc(const utc_time<Duration>& t) NOEXCEPT
     using namespace std::chrono;
     using CD = typename std::common_type<Duration, seconds>::type;
     return tai_time<CD>{t.time_since_epoch()} +
-      (sys_days(year{ 1970 } / January / 1) - sys_days(year{ 1958 } / January / 1) + 
-             detail::pre_leap_from_tai_epoch<CD>(sys_time<CD>(sys_days(year{ 1970 } / January / 1).time_since_epoch())));
+            (sys_days(year{1970}/January/1) - sys_days(year{1958}/January/1) +
+             detail::pre_leap_from_tai_epoch<CD>(sys_days(year{1970}/January/1)));
 }
 
 inline
@@ -2392,7 +2605,7 @@ template <class Duration>
 
 using gps_seconds = gps_time<std::chrono::seconds>;
 
-#if 1
+#if 1  // HH check and remove a branch
 
 template <class Duration>
 inline

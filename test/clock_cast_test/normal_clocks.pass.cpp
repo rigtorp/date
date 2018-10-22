@@ -62,28 +62,28 @@ main()
     using sys_clock = std::chrono::system_clock;
 
     std::vector<sys_days> inputs = {
-      sys_days{ 1957_y / jan / 1 }, 
-      sys_days{ 1958_y / jan / 1 },  // a lot of vectors between 1958 and 1972 to 
-      sys_days{ 1961_y / jan / 1 },  // check behaviour during the period when 
-      sys_days{ 1961_y / aug / 1 },  // leap time was based on formulae, rather 
-      sys_days{ 1962_y / jan / 1 },  // than discrete leap seconds
-      sys_days{ 1963_y / nov / 1 },
-      sys_days{ 1964_y / jan / 1 },
-      sys_days{ 1964_y / apr / 1 },
-      sys_days{ 1964_y / sep / 1 },
-      sys_days{ 1965_y / jan / 1 },
-      sys_days{ 1965_y / mar / 1 },
-      sys_days{ 1965_y / jul / 1 },
-      sys_days{ 1965_y / sep / 1 },
-      sys_days{ 1966_y / jan / 2 },
-      sys_days{ 1968_y / feb / 1 },
-      sys_days{ 1970_y / jan / 1 },
-      sys_days{ 1971_y / dec / 31 },
-      sys_days{ 1972_y / jan / 1 },
-      sys_days{ 1980_y / jan / 6 },
-      sys_days{ 1980_y / nov / 3 },
-      sys_days{ 1997_y / dec / 12},
-      sys_days{ 2017_y / jan / 17 },
+      sys_days{ 1957_y / January / 1 },
+      sys_days{ 1958_y / January / 1 },  // a lot of vectors between 1958 and 1972 to
+      sys_days{ 1961_y / January / 1 },  // check behaviour during the period when
+      sys_days{ 1961_y / August / 1 },  // leap time was based on formulae, rather
+      sys_days{ 1962_y / January / 1 },  // than discrete leap seconds
+      sys_days{ 1963_y / November / 1 },
+      sys_days{ 1964_y / January / 1 },
+      sys_days{ 1964_y / April / 1 },
+      sys_days{ 1964_y / September / 1 },
+      sys_days{ 1965_y / January / 1 },
+      sys_days{ 1965_y / March / 1 },
+      sys_days{ 1965_y / July / 1 },
+      sys_days{ 1965_y / September / 1 },
+      sys_days{ 1966_y / January / 2 },
+      sys_days{ 1968_y / February / 1 },
+      sys_days{ 1970_y / January / 1 },
+      sys_days{ 1971_y / December / 31 },
+      sys_days{ 1972_y / January / 1 },
+      sys_days{ 1980_y / January / 6 },
+      sys_days{ 1980_y / November / 3 },
+      sys_days{ 1997_y / December / 12},
+      sys_days{ 2017_y / January / 17 },
     };
 
     for (const sys_days& st : inputs)

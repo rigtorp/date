@@ -96,12 +96,14 @@ namespace date
 #    define CONSTDATA const
 #    define CONSTCD11
 #    define CONSTCD14
+#    define CONSTDA14 const
 #    define NOEXCEPT _NOEXCEPT
 #  else
 //   VS2017 and later
 #    define CONSTDATA constexpr const
 #    define CONSTCD11 constexpr
 #    define CONSTCD14 constexpr
+#    define CONSTDA14 constexpr const
 #    define NOEXCEPT noexcept
 #  endif
 
@@ -110,6 +112,7 @@ namespace date
 #  define CONSTDATA constexpr const
 #  define CONSTCD11 constexpr
 #  define CONSTCD14
+#  define CONSTDA14 const
 #  define NOEXCEPT noexcept
 
 #elif __cplusplus >= 201402
@@ -117,12 +120,14 @@ namespace date
 #  define CONSTDATA constexpr const
 #  define CONSTCD11 constexpr
 #  define CONSTCD14 constexpr
+#  define CONSTDA14 constexpr const
 #  define NOEXCEPT noexcept
 #else
 // C++11
 #  define CONSTDATA constexpr const
 #  define CONSTCD11 constexpr
 #  define CONSTCD14
+#  define CONSTDA14 const
 #  define NOEXCEPT noexcept
 #endif
 

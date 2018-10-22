@@ -58,7 +58,7 @@ main()
 
      assert(clock_cast<local_t>(ut) == lu);
      assert(ut.time_since_epoch() == seconds(0));
-     
+
      auto lt = local_days{ 1970_y / January / 1_d } - 8s;
      auto tt = clock_cast<tai_clock>(lt);
      assert(clock_cast<local_t>(tt) == lt);
